@@ -9,4 +9,4 @@ A little fun project. In the end, this will be a basic text editor without anyth
 
 | Date | Hours | Changes  |
 | ------ | ------ | --- |
-| 2023/08/30 | 1 | Drawing the text box, cursor can move in a grid
+| 2023/08/30 | 2 | Drawing the text box, cursor can move in a grid, implemented some rope operations
