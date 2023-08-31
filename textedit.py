@@ -7,14 +7,17 @@ import tkinter as tk
 class Cursor:
     def __init__(self):
         self.line: int = 0  # Line number
-        self.pos: int = 0  # Position on the line
+        self.pos_on_line: int = 0  # Position on the line
+        self.pos: int = 0
     
     def move_right(self):
         # TODO: only move if self.pos is smaller than line length
         self.pos += 1
+        self.pos_on_line += 1
     
     def move_left(self):
         if self.pos > 0: self.pos -= 1
+        if self.pos_on_line > 0: self.pos_on_line -= 1
     
     def move_up(self):
         # TODO: line length checks
@@ -31,7 +34,7 @@ class Cursor:
 def move_handler(dir):
     move = getattr(Cursor, 'move_' + dir)
     move(cursor)
-    cursor_xpos = 7 + cursor.pos * 8
+    cursor_xpos = 7 + cursor.pos_on_line * 8
     cursor_ypos = 3 + cursor.line * 15
     canvas.coords(cursor_line, cursor_xpos, cursor_ypos, cursor_xpos, cursor_ypos + 15)
     canvas.update()
@@ -54,9 +57,16 @@ def key_handler(event):
 
 def backspace_handler(event):
     global content, cursor
-    #content.remove(cursor.pos - 1)
     del content[cursor.pos - 1]
     move_handler('left')
+    update_text()
+
+def return_handler(event):
+    global content
+    content.insert(cursor.pos, '\n')
+    cursor.pos += 1
+    cursor.pos_on_line = 0
+    move_handler('down')
     update_text()
 
 root = tk.Tk()
@@ -82,6 +92,7 @@ canvas.bind('<Up>', up_handler)
 canvas.bind('<Down>', down_handler)
 canvas.bind('<Key>', key_handler)
 canvas.bind('<BackSpace>', backspace_handler)
+canvas.bind('<Return>', return_handler)
 canvas.pack()
 canvas.focus_set()
 
