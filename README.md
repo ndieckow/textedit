@@ -10,3 +10,4 @@ A little fun project. In the end, this will be a basic text editor without anyth
 | Date | Hours | Changes  |
 | ------ | ------ | --- |
 | 2023/08/30 | 2 | Drawing the text box, cursor can move in a grid, implemented some rope operations
+| 2023/08/31 | 1 | Return / delete mechanics, primitive save

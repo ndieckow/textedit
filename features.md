@@ -2,7 +2,7 @@
 
 ### Basic features
 - [ ] Rope data structure
-- [ ] properly handling line breaks
+- [x] properly handling line breaks
 - [ ] save and load
 - [ ] scrolling
 - [ ] cursor mechanics
