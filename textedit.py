@@ -9,10 +9,10 @@ class Cursor:
         self.line: int = 0  # Line number
         self.pos: int = 0 # Position on the line
     
-    def move_right(self):
-        if self.pos < lines[self.line].length:
-            self.pos += 1
-        elif self.line < len(lines) - 1: # wrap to next line
+    def move_right(self, amt = 1):
+        if self.pos + amt <= lines[self.line].length:
+            self.pos += amt
+        elif self.line < len(lines) - 1: # wrap to next line, NOTE: amt is ignored
             self.line += 1
             self.pos = 0
     
@@ -26,22 +26,24 @@ class Cursor:
     def move_up(self):
         if self.line > 0:
             self.line -= 1
-        
-        # clip line pos
-        if self.pos > lines[self.line].length:
-            self.pos = lines[self.line].length # TODO: store the actual 'desired' position
+        self.clip_line_pos()
     
     def move_down(self):
         # TODO: line length checks
         if self.line < len(lines) - 1:
             self.line += 1
+        self.clip_line_pos()
+
+    def clip_line_pos(self):
+        self.pos = min(self.pos, lines[self.line].length)
     
     def teleport(self, line, pos):
-        pass
+        self.line = min(line, len(lines) - 1)
+        self.pos = min(pos, lines[self.line].length)
 
 class Line:
-    def __init__(self):
-        self.content = []
+    def __init__(self, content = ''):
+        self.content = list(content)
     
     @property
     def length(self):
@@ -52,7 +54,10 @@ class Line:
         return self.length == 0
 
     def insert(self, i, char):
-        self.content.insert(i, char)
+        if len(char) == 1:
+            self.content.insert(i, char)
+        else:
+            self.content[i:i] = char
     
     def remove_at(self, i):
         del self.content[i]
@@ -107,11 +112,26 @@ def backspace_handler(event):
 def return_handler(event):
     # insert first, then move down!
     lines.insert(cursor.line + 1, Line())
+    lines[cursor.line + 1].content += lines[cursor.line].content[cursor.pos:]
+    lines[cursor.line].content = lines[cursor.line].content[:cursor.pos]
     cursor.move_down()
-    lines[cursor.line].content += lines[cursor.line - 1].content[cursor.pos:]
-    lines[cursor.line - 1].content = lines[cursor.line - 1].content[:cursor.pos]
     cursor.pos = 0
     update('text', 'cursor')
+
+def tab_handler(event):
+    lines[cursor.line].insert(cursor.pos, '    ') # TODO: add some kind of write function that also moves the cursor
+    cursor.move_right(4)
+    update('text', 'cursor')
+    return 'break'
+
+# TODO: store those 4 numbers in one place
+# cursor_xpos = 7 + cursor.pos * 8
+# cursor_ypos = 3 + cursor.line * 15 
+def left_click_handler(event):
+    line = (event.y - 3) // 15  # floor works better for lines
+    pos = round((event.x - 7) / 8)  # nearest rounding works better for pos
+    cursor.teleport(line, pos)
+    update('cursor')
 
 def update(*what):
     if 'text' in what:
@@ -142,16 +162,31 @@ canvas.bind('<Down>', down_handler)
 canvas.bind('<Key>', key_handler)
 canvas.bind('<BackSpace>', backspace_handler)
 canvas.bind('<Return>', return_handler)
+canvas.bind('<Tab>', tab_handler)
+canvas.bind('<Button-1>', left_click_handler)
 canvas.pack()
 canvas.focus_set()
 
-def save_to(path):
+def save_txt(path):
     with open(path, 'w') as f:
         f.write('\n'.join([line.to_str() for line in lines]))
     save_to_label.pack(side='left', fill='both')
     save_to_label.after(3000, lambda: save_to_label.pack_forget())
 
+def load_txt(path):
+    global lines, cursor
+    # completely obliterate the previous stuff
+    lines = []
+    cursor = Cursor()
+
+    with open(path, 'r') as f:
+        for line in f:
+            lines.append(Line(line[:-1])) # cut off the newlines
+    
+    update('text', 'cursor')
+
 tk.Button(frm, text="Quit", command=root.destroy).pack(side='left', fill='both')
-tk.Button(frm, text="Save", command=lambda: save_to('out.txt')).pack(side='left', fill='both')
+tk.Button(frm, text="Save", command=lambda: save_txt('out.txt')).pack(side='left', fill='both')
+tk.Button(frm, text="Load from in.txt", command=lambda: load_txt('in.txt')).pack(side='left', fill='both')
 save_to_label = tk.Label(frm, text="Saved to out.txt")
 root.mainloop()
