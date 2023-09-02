@@ -12,4 +12,4 @@ A little fun project. In the end, this will be a basic text editor without anyth
 | 2023/08/30 | 2 | Drawing the text box, cursor can move in a grid, implemented some rope operations
 | 2023/08/31 | 1 | Return / delete mechanics, primitive save
 | 2023/09/01 | 2 | Implemented some more rope operations, cursor teleport, primitive load, TAB key support
-| 2023/09/02 | 2 | Copy/paste support, text marking |
+| 2023/09/02 | 2.5 | Copy/paste support, text marking (both across multiple lines) |

@@ -43,7 +43,7 @@ class Cursor:
     
     def teleport(self, line, pos):
         self.line = min(line, len(lines) - 1)
-        self.pos = min(pos, lines[self.line].length)
+        self.pos = lines[self.line].length if pos == -1 else min(pos, lines[self.line].length)
 
 class Line:
     def __init__(self, content = ''):
@@ -128,15 +128,13 @@ def get_marked_text():
     global marker_start, marker_end
     if -1 in marker_start + marker_end:
         return ''
-    if marker_start > marker_end: # swap if they're wrongly ordered
-        tmp = marker_start
-        marker_start = marker_end
-        marker_end = tmp
-    if marker_start[0] == marker_end[0]:
-        return ''.join(lines[marker_start[0]].content[marker_start[1]:marker_end[1]])
+    mstart = marker_start if marker_start < marker_end else marker_end
+    mend = marker_end if marker_start < marker_end else marker_start
+    if mstart[0] == mend[0]:
+        return ''.join(lines[mstart[0]].content[mstart[1]:mend[1]])
     else:
         # TODO: refactor this ugly-ass line
-        return '\n'.join(''.join(lines[l].content[(marker_start[1] if l == marker_start[0] else 0) : (marker_end[1] if l == marker_end[0] else lines[l].length)]) for l in range(marker_start[0], marker_end[0] + 1))
+        return '\n'.join(''.join(lines[l].content[(mstart[1] if l == mstart[0] else 0) : (mend[1] if l == mend[0] else lines[l].length)]) for l in range(mstart[0], mend[0] + 1))
 
 def backspace_handler(event):
     global cursor
@@ -181,8 +179,16 @@ def key_press_handler(event):
     if key_hold_dict[Key.CMD]:
         if event.char == 'v':
             paste = xerox.paste()
-            lines[cursor.line].insert(cursor.pos, paste)
-            cursor.move_right(len(paste))
+            paste_lines = paste.split('\n')
+            remainder = lines[cursor.line].content[cursor.pos:]
+            lines[cursor.line].content = lines[cursor.line].content[:cursor.pos]
+            lines[cursor.line].insert(cursor.pos, paste_lines[0])
+            for i in range(1, len(paste_lines)):
+                ln = Line(paste_lines[i])
+                lines.insert(cursor.line + i, ln)
+            lines[cursor.line + len(paste_lines) - 1].content += remainder
+            #cursor.move_right(len(paste))
+            cursor.teleport(cursor.line + len(paste_lines) - 1, len(paste_lines[-1]))
         elif event.char == 'c':
             marked_text = get_marked_text()
             if marked_text != '': xerox.copy(marked_text)
