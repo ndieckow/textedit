@@ -12,6 +12,7 @@ class Cursor:
     def __init__(self):
         self.line: int = 0  # Line number
         self.pos: int = 0 # Position on the line
+        self.goal_pos: int = 0 # desired position, whenever possible
     
     def move_right(self, amt = 1):
         if self.pos + amt <= lines[self.line].length:
@@ -19,6 +20,7 @@ class Cursor:
         elif self.line < len(lines) - 1: # wrap to next line, NOTE: amt is ignored
             self.line += 1
             self.pos = 0
+        self.goal_pos = self.pos
     
     def move_left(self):
         if self.pos > 0:
@@ -26,16 +28,23 @@ class Cursor:
         elif self.line > 0: # wrap to previous line
             self.line -= 1
             self.pos = lines[self.line].length
+        self.goal_pos = self.pos
     
     def move_up(self):
         if self.line > 0:
             self.line -= 1
+            self.pos = self.goal_pos # see if we can get back to goal pos
+        else:
+            self.pos = self.goal_pos = 0
         self.clip_line_pos()
     
     def move_down(self):
         # TODO: line length checks
         if self.line < len(lines) - 1:
             self.line += 1
+            self.pos = self.goal_pos
+        else:
+            self.pos = self.goal_pos = lines[self.line].length
         self.clip_line_pos()
 
     def clip_line_pos(self):
@@ -44,6 +53,7 @@ class Cursor:
     def teleport(self, line, pos):
         self.line = min(line, len(lines) - 1)
         self.pos = lines[self.line].length if pos == -1 else min(pos, lines[self.line].length)
+        self.goal_pos = self.pos
 
 class Line:
     def __init__(self, content = ''):
@@ -98,7 +108,7 @@ def left_handler(event): move_handler('left')
 def up_handler(event): move_handler('up')
 def down_handler(event): move_handler('down')
 
-Key = Enum('Key', ['SHIFT', 'CMD'])
+Key = Enum('Key', ['SHIFT', 'CMD', 'MOUSE_LEFT'])
 
 cursor: Cursor = Cursor()
 lines: list[Line] = [Line()]
@@ -113,7 +123,7 @@ marked_lines: set[int] = set() # we need to keep track of the lines that are (pa
 
 def marker_pre():
     global marker_start, marker_end
-    if key_hold_dict[Key.SHIFT]:
+    if key_hold_dict[Key.SHIFT] or key_hold_dict[Key.MOUSE_LEFT]:
         if marker_start == (-1, -1): marker_start = (cursor.line, cursor.pos)
     else:
         marker_start = (-1, -1)
@@ -121,7 +131,7 @@ def marker_pre():
 
 def marker_post():
     global marker_start, marker_end
-    if key_hold_dict[Key.SHIFT]:
+    if key_hold_dict[Key.SHIFT] or key_hold_dict[Key.MOUSE_LEFT]:
         marker_end = (cursor.line, cursor.pos)
 
 def get_marked_text():
@@ -201,12 +211,24 @@ def key_release_handler(event):
     if event.keysym in keysym_key_dict:
         key_hold_dict[keysym_key_dict[event.keysym]] = False
 
-def left_click_handler(event):
+def left_click_press_handler(event):
     marker_pre()
     line, pos = px2rc(event.x, event.y)
     cursor.teleport(line, pos)
     marker_post()
     update('cursor', 'marker')
+
+    key_hold_dict[Key.MOUSE_LEFT] = True
+
+def left_click_release_handler(event):
+    key_hold_dict[Key.MOUSE_LEFT] = False
+
+def mouse_move_handler(event):
+    if key_hold_dict[Key.MOUSE_LEFT]:
+        marker_pre()
+        cursor.teleport(*px2rc(event.x, event.y))
+        marker_post()
+        update('cursor', 'marker')
 
 def update(*what):
     global marker_start, marker_end
@@ -258,7 +280,9 @@ canvas.bind('<Down>', down_handler)
 canvas.bind('<BackSpace>', backspace_handler)
 canvas.bind('<Return>', return_handler)
 canvas.bind('<Tab>', tab_handler)
-canvas.bind('<Button-1>', left_click_handler)
+canvas.bind('<ButtonPress-1>', left_click_press_handler)
+canvas.bind('<ButtonRelease-1>', left_click_release_handler)
+canvas.bind('<Motion>', mouse_move_handler)
 canvas.bind('<KeyPress>', key_press_handler)
 canvas.bind('<KeyRelease>', key_release_handler)
 canvas.pack()
