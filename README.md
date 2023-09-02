@@ -3,7 +3,7 @@
 A little fun project. In the end, this will be a basic text editor without anything fancy. It can save and load files, that's it. Maybe I'll add some syntax highlighting.
 
 ## Current State
-![](imgs/showcase_0902.png)
+![](imgs/showcase_09_02.png)
 
 ## Time worked:
 
