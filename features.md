@@ -1,18 +1,19 @@
 ## To implement:
 
 ### Basic features
-- [ ] Rope data structure
 - [x] properly handling line breaks
-- [ ] save and load
+- [x] marking
+- [x] copy/paste
 - [ ] scrolling
 - [ ] window resizing
-- [ ] cursor mechanics
-- [ ] marking
-- [ ] copy/paste
-- [ ] undo/redo
 - [ ] line numbers
+- [ ] cursor mechanics (ctrl + left/right to jump across words, etc.)
+- [ ] save and load (with file explorer)
+- [ ] undo/redo
+- [ ] Rope data structure (array seems to work just fine tbh)
 
 ### Fancy features
+- [ ] dark mode
 - [ ] easy line reordering
 - [ ] file tabs
 - [ ] zoom
