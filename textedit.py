@@ -33,8 +33,6 @@ if __name__ == '__main__':
 
     canvas = tk.Canvas(frm, width=800, height=400, bg='white', cursor='xterm')
 
-    #marker_rect = canvas.create_rectangle(-1, -1, -1, -1, fill='lightblue')
-
     cursor_xpos, cursor_ypos = rc2px(0, 0)
     cursor_line = canvas.create_line(cursor_xpos, cursor_ypos, cursor_xpos, cursor_ypos + 15, fill="black", width=1)
 
@@ -44,19 +42,10 @@ if __name__ == '__main__':
 
     def attach_context(fn):
         return lambda x: fn(context, x)
-
-    canvas.bind('<Left>', attach_context(left_handler))
-    canvas.bind('<Right>', attach_context(right_handler))
-    canvas.bind('<Up>', attach_context(up_handler))
-    canvas.bind('<Down>', attach_context(down_handler))
-    canvas.bind('<BackSpace>', attach_context(backspace_handler))
-    canvas.bind('<Return>', attach_context(return_handler))
-    canvas.bind('<Tab>', attach_context(tab_handler))
-    canvas.bind('<ButtonPress-1>', attach_context(left_click_press_handler))
-    canvas.bind('<ButtonRelease-1>', attach_context(left_click_release_handler))
-    canvas.bind('<Motion>', attach_context(mouse_move_handler))
-    canvas.bind('<KeyPress>', attach_context(key_press_handler))
-    canvas.bind('<KeyRelease>', attach_context(key_release_handler))
+    
+    for eventstring, handler in HANDLER_DICT.items():
+        canvas.bind(eventstring, attach_context(handler))
+    
     canvas.pack()
     canvas.focus_set()
 
