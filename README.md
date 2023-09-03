@@ -13,3 +13,4 @@ A little fun project. In the end, this will be a basic text editor without anyth
 | 2023/08/31 | 1 | Return / delete mechanics, primitive save
 | 2023/09/01 | 2 | Implemented some more rope operations, cursor teleport, primitive load, TAB key support
 | 2023/09/02 | 3 | Copy/paste support, text marking (across multiple lines, with cursor) |
+| 2023/09/03 | 1 | Some refactoring

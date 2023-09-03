@@ -3,7 +3,7 @@
 ### Basic features
 - [x] properly handling line breaks
 - [x] marking
-    - [ ] with mouse
+    - [x] with mouse
 - [x] copy/paste
     - [x] multiline text
 - [ ] scrolling
